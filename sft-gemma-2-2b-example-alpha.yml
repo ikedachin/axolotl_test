@@ -1,0 +1,83 @@
+base_model: google/gemma-2-2b
+# optionally might have model_type or tokenizer_type
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
+# Automatically upload checkpoint and final model to HF
+# hub_model_id: username/custom_model_name
+
+load_in_8bit: false
+load_in_4bit: true
+
+# huggingface repo
+# 学習後のモデルのHFへのアップロードに関する設定
+hub_model_id: ikedachin/gemma-2-2b-axolotl-sft-v1.0
+hub_strategy: "end"
+push_dataset_to_hub:
+hf_use_auth_token: true
+
+chat_template: gemma
+
+# 学習データセットの前処理に関する設定
+datasets:
+  - path: kanhatakeyama/ramdom-to-fixed-multiturn-Calm3
+    split: 20240806filtered[0:100]
+    type: chat_template
+    field_messages: messages
+    message_field_role: role
+    message_field_content: content
+  - path: llm-jp/magpie-sft-v1.0
+    split: train[0:100]
+    type: chat_template
+    field_messages: conversations
+    message_field_role: role
+    message_field_content: content
+  - path: Aratako/magpie-qwen2.5-32b-reasoning-100k-formatted
+    split: train[0:100]
+    type: chat_template
+    field_messages: conversations
+    message_field_role: role
+    message_field_content: content
+
+val_set_size: 0.0
+output_dir: ./outputs/out
+
+adapter: qlora
+lora_r: 32
+lora_alpha: 16
+lora_dropout: 0.05
+lora_target_linear: true
+
+sequence_len: 2048
+sample_packing: true
+eval_sample_packing: false
+
+
+wandb_project:
+wandb_entity:
+wandb_watch:
+wandb_name:
+wandb_log_model:
+
+
+gradient_accumulation_steps: 4
+micro_batch_size: 1
+num_epochs: 4
+optimizer: adamw_bnb_8bit
+lr_scheduler: cosine
+learning_rate: 0.0002
+
+bf16: auto
+tf32: true
+
+gradient_checkpointing: true
+resume_from_checkpoint:
+logging_steps: 1
+flash_attention: true
+
+warmup_ratio: 0.1
+evals_per_epoch:
+saves_per_epoch: 1
+weight_decay: 0.0
+special_tokens:
+
+# save_first_step: true  # uncomment this to validate checkpoint saving works with your config
