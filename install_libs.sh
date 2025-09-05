@@ -7,6 +7,8 @@ uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url ht
 
 echo "install axolotl flash-attn deepspeed"
 uv pip install --no-build-isolation "axolotl[flash-attn,deepspeed]"
+
+echo " install flash-attn"
 uv pip install -U --no-build-isolation flash-attn
 
 echo "isntall vim"
