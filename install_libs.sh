@@ -13,5 +13,10 @@ echo "isntall vim"
 apt update && apt upgrade -y
 apt install vim
 
+mkdir deepspeed_configs
+
+echo "download zero3_bf16"
+wget https://raw.githubusercontent.com/axolotl-ai-cloud/axolotl/main/deepspeed_configs/zero3_bf16.json -O /workspace/axolotl/deepspeed_configs/zero3_bf16.json
+
 echo "finish installing"
 
