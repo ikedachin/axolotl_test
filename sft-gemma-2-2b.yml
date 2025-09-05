@@ -65,7 +65,7 @@ lora_fan_in_fan_out:
 
 # wandbに関する設定
 wandb_project: axolotl
-wandb_entity: aratako-lm
+wandb_entity: ikedachin
 wandb_watch:
 wandb_name: sft-lora-1
 wandb_log_model:
