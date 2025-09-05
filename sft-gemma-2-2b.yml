@@ -4,7 +4,7 @@ model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
 # 学習後のモデルのHFへのアップロードに関する設定
-hub_model_id: Aratako/gemma-2-2b-axolotl-sft-v1.0
+hub_model_id: ikedachin/gemma-2-2b-axolotl-sft-v1.0
 hub_strategy: "end"
 push_dataset_to_hub:
 hf_use_auth_token: true
