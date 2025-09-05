@@ -1,0 +1,115 @@
+# =========================
+# Model
+# =========================
+base_model: google/gemma-2-2b
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
+padding_side: right         # 右パディング（FA2/packingと相性良）
+
+# =========================
+# Hub
+# =========================
+hub_model_id: ikedachin/gemma-2-2b-axolotl-fullft-ds-zero3-v1.0
+hub_strategy: "end"
+hf_use_auth_token: true     # 実運用は環境変数 HF_TOKEN 推奨
+
+# =========================
+# Datasets（tokenizer の chat_template に委譲）
+# =========================
+datasets:
+  - path: kanhatakeyama/ramdom-to-fixed-multiturn-Calm3
+    split: 20240806filtered[0:100]
+    type: chat
+    field_messages: messages
+    message_field_role: role
+    message_field_content: content
+
+  - path: llm-jp/magpie-sft-v1.0
+    split: train[0:100]
+    type: chat
+    field_messages: conversations
+    message_field_role: role
+    message_field_content: content
+
+  - path: Aratako/magpie-qwen2.5-32b-reasoning-100k-formatted
+    split: train[0:100]
+    type: chat
+    field_messages: conversations
+    message_field_role: role
+    message_field_content: content
+
+shuffle_merged_datasets: true
+dataset_prepared_path: /workspace/data/sft-data
+output_dir: /workspace/data/models/gemma-2-2b-axolotl-fullft-ds-zero3-v1.0
+val_set_size: 0.05
+
+# =========================
+# Training (Full-FT)
+# =========================
+# 量子化/LoRAは完全に無効（load_in_4bit/8bit, adapter 等は書かない）
+sequence_len: 4096
+sample_packing: true
+eval_sample_packing: false
+pad_to_sequence_len: true
+
+micro_batch_size: 1                    # GPUに応じて↑↓（ZeRO-3で広くスケール）
+gradient_accumulation_steps: 16        # 実効バッチ = micro * GA * #GPU
+num_epochs: 1
+
+optimizer: adamw_torch_fused           # Hopperで速い。NCCL/torch側optimを使用
+learning_rate: 1.5e-5                  # Full-FTは LoRA より低めに。1e-5〜2e-5目安
+weight_decay: 0.1                      # Full-FT では 0.01〜0.1。ここでは正則強め
+lr_scheduler: cosine
+cosine_min_lr_ratio: 0.1
+warmup_steps: 100
+
+train_on_inputs: false
+group_by_length: false
+
+bf16: true                              # H100 なので BF16 本命
+fp16:
+tf32: true                              # 一部の演算で throughput 改善
+
+gradient_checkpointing: true            # メモリ削減（ZeRO-3と併用可）
+max_grad_norm: 1.0
+
+# =========================
+# Logging / Eval / Save
+# =========================
+wandb_project: axolotl
+wandb_entity: ikedachin
+wandb_name: zero3-sft-fullft-ds-1
+
+logging_steps: 10
+
+save_strategy: steps
+save_steps: 100
+save_total_limit: 2
+
+eval_steps: 200
+eval_batch_size: 1
+
+# =========================
+# Attention / Kernels
+# =========================
+flash_attention: true                   # 環境がFA2対応ビルドであること
+xformers_attention:
+
+# =========================
+# Parallel / Deepspeed
+# =========================
+deepspeed: /workspace/axolotl/deepspeed_configs/zero3_bf16_fullft.json
+
+# =========================
+# Misc
+# =========================
+early_stopping_patience:
+auto_resume_from_checkpoints: true
+local_rank:
+debug:
+fsdp:
+fsdp_config:
+
+# 注意: special_tokens は追加しない（PAD新設は語彙変更になるため非推奨）
+# special_tokens:
+#   pad_token: <pad>  # ← 追加しない。PADはEOS代用で十分
