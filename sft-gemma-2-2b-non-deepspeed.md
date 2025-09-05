@@ -5,7 +5,7 @@ tokenizer_type: AutoTokenizer
 padding_side: right  # 右パディング推奨（FA2/packing整合）
 
 # ========== Hub ==========
-hub_model_id: ikedachin/gemma-2-2b-axolotl-sft-v1.0
+hub_model_id: ikedachin/gemma-2-2b-axolotl-sft-nonDeepSpeed-v1.0
 hub_strategy: "end"
 # push_dataset_to_hub:  # ← 不要なので削除
 hf_use_auth_token: true  # 環境変数 HF_TOKEN 推奨（互換のため残置可）
@@ -93,7 +93,7 @@ gradient_checkpointing: true   # メモリ削減＆長尺安定化
 wandb_project: axolotl
 wandb_entity: ikedachin
 wandb_watch:
-wandb_name: sft-lora-1
+wandb_name: nondeepseed-sft-lora-1
 wandb_log_model:
 
 logging_steps: 1
