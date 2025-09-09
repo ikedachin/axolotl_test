@@ -1,0 +1,84 @@
+base_model: openai/gpt-oss-20b
+use_kernels: true
+
+quantization_config:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+plugins:
+  - axolotl.integrations.cut_cross_entropy.CutCrossEntropyPlugin
+
+experimental_skip_move_to_device: true
+
+hub_model_id: ikedachin/gpt-oss-20b-dp-v2
+hub_strategy: "end"
+hf_use_auth_token: true
+
+wandb_project: axolotl
+wandb_name: gpt-oss-20b-dp-v2-sft
+logging_steps: 5
+
+datasets:
+  - path: ikedachin/difficult_problem_dataset_v2
+    split: train
+    type:
+      field_instruction: input
+      field_output: output
+      format: |
+        User: {instruction}
+        Assistant:
+      no_input_format: |
+        User: {instruction}
+        Assistant:
+
+train_on_inputs: false
+dataset_prepared_path: last_run_prepared
+val_set_size: 0
+output_dir: ./outputs/gpt-oss-out-merged/
+
+sequence_len: 8192
+sample_packing: true
+
+adapter: lora
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.0
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+
+gradient_accumulation_steps: 8
+micro_batch_size: 1
+num_epochs: 1
+
+optimizer: adamw_torch_8bit
+lr_scheduler: cosine
+cosine_min_lr_ratio: 0.01
+learning_rate: 1e-5
+max_grad_norm: 1.0
+
+bf16: true
+tf32: true
+
+flash_attention: true
+attn_implementation: kernels-community/vllm-flash-attn3
+
+gradient_checkpointing: true
+activation_offloading: true
+saves_per_epoch: 1
+warmup_ratio: 0.1
+
+special_tokens:
+eot_tokens:
+  - "<|end|>"
+
+merge_adapter: true
+save_safetensors: true
