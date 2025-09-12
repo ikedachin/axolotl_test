@@ -11,10 +11,6 @@ plugins:
   - axolotl.integrations.cut_cross_entropy.CutCrossEntropyPlugin
 
 # FSDP設定を追加
-fsdp:
-  - full_shard  # パラメータ、勾配、オプティマイザ状態を完全にシャード化
-  - auto_wrap   # モデル層を自動的にFSDPでラップ
-  - offload     # 必要に応じてCPUへのオフロードを有効化
 # fsdp_config:
 #   fsdp_backward_prefetch: "backward_pre"  # バックワードパスの最適化
 #   fsdp_forward_prefetch: true             # フォワードパスの最適化
@@ -32,11 +28,10 @@ fsdp_config:
   transformer_layer_cls_to_wrap: GptOssDecoderLayer
   state_dict_type: FULL_STATE_DICT
   reshard_after_forward: true
-  fsdp_tye: FULL_SHARD # 学習開始後エラーで追加
+  fsdp_type: FULL_SHARD # 学習開始後エラーで追加
   mixed_precision: true # 学習開始後エラーで追加
   use_orig_params: true # 学習開始後エラーで追加  
   limit_all_gathers: true # 学習開始後エラーで追加 
-  cpu_offload: true # 学習開始後エラーで追加 
 
 
 # マルチGPU用の分散型設定
