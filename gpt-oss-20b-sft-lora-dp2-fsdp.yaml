@@ -33,7 +33,7 @@ mixed_precision: "bf16"
 # 実験的なデバイススキップを無効化（FSDPでは不要）
 experimental_skip_move_to_device: false
 
-hub_model_id: ikedachin/gpt-oss-20b-dp-v2
+hub_model_id: ikedachin/gpt-oss-20b-dp-v2-fsdp
 hub_strategy: "end"
 hf_use_auth_token: true
 
