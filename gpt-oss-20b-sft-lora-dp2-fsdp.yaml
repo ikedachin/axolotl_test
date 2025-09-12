@@ -32,9 +32,9 @@ fsdp_config:
   transformer_layer_cls_to_wrap: GptOssDecoderLayer
   state_dict_type: FULL_STATE_DICT
   reshard_after_forward: true
-  fsdp_tye: FULL_SHARD
-  mixed_precision: true
-  use_orig_params: true
+  fsdp_tye: FULL_SHARD # 学習開始後エラーで追加
+  mixed_precision: true # 学習開始後エラーで追加
+  use_orig_params: true # 学習開始後エラーで追加
 
 # マルチGPU用の分散型設定
 # deepspeed: false
