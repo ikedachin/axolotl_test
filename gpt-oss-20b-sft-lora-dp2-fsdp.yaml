@@ -15,16 +15,24 @@ fsdp:
   - full_shard  # パラメータ、勾配、オプティマイザ状態を完全にシャード化
   - auto_wrap   # モデル層を自動的にFSDPでラップ
   - offload     # 必要に応じてCPUへのオフロードを有効化
+# fsdp_config:
+#   fsdp_backward_prefetch: "backward_pre"  # バックワードパスの最適化
+#   fsdp_forward_prefetch: true             # フォワードパスの最適化
+#   fsdp_sync_module_states: true           # モジュール状態の同期
+#   fsdp_state_dict_type: "full"            # 保存時のstate_dictタイプ
+#   fsdp_offload_params: false              # パラメータのCPUオフロード
+#   fsdp_shard_grad_op: true                # 勾配演算のシャーディング
+#   fsdp_transformer_layer_cls_to_wrap: "GPTNeoXLayer"  # ラップする層の指定
+#   fsdp_min_num_params: 1000000            # シャーディング対象の最小パラメータ数
+fsdp_version: 2
 fsdp_config:
-  fsdp_backward_prefetch: "backward_pre"  # バックワードパスの最適化
-  fsdp_forward_prefetch: true             # フォワードパスの最適化
-  fsdp_sync_module_states: true           # モジュール状態の同期
-  fsdp_state_dict_type: "full"            # 保存時のstate_dictタイプ
-  fsdp_offload_params: false              # パラメータのCPUオフロード
-  fsdp_shard_grad_op: true                # 勾配演算のシャーディング
-  fsdp_transformer_layer_cls_to_wrap: "GPTNeoXLayer"  # ラップする層の指定
-  fsdp_min_num_params: 1000000            # シャーディング対象の最小パラメータ数
-  
+  offload_params: false
+  cpu_ram_efficient_loading: true
+  auto_wrap_policy: TRANSFORMER_BASED_WRAP
+  transformer_layer_cls_to_wrap: GPTNeoXLayer
+  state_dict_type: FULL_STATE_DICT
+  reshard_after_forward: true
+
 # マルチGPU用の分散型設定
 deepspeed: false
 ddp: false
