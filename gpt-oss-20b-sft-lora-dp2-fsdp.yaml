@@ -29,12 +29,15 @@ fsdp_config:
   offload_params: false
   cpu_ram_efficient_loading: true
   auto_wrap_policy: TRANSFORMER_BASED_WRAP
-  transformer_layer_cls_to_wrap: GPTNeoXLayer
+  transformer_layer_cls_to_wrap: GptOssDecoderLayer
   state_dict_type: FULL_STATE_DICT
   reshard_after_forward: true
+  fsdp_tye: FULL_SHARD
+  mixed_precision: true
+  use_orig_params: true
 
 # マルチGPU用の分散型設定
-deepspeed: false
+# deepspeed: false
 ddp: false
 mixed_precision: "bf16"
 
