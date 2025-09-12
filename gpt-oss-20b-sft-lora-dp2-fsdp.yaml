@@ -35,8 +35,8 @@ fsdp_config:
   fsdp_tye: FULL_SHARD # 学習開始後エラーで追加
   mixed_precision: true # 学習開始後エラーで追加
   use_orig_params: true # 学習開始後エラーで追加  
-  limit_all_gathers: true
-  cpu_offload: true
+  limit_all_gathers: true # 学習開始後エラーで追加 
+  cpu_offload: true # 学習開始後エラーで追加 
 
 
 # マルチGPU用の分散型設定
