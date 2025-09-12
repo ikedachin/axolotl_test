@@ -107,7 +107,7 @@ saves_per_epoch: 1
 warmup_ratio: 0.1
 
 # FSDP用メモリ効率設定
-max_memory_MB: 20000  # 各GPUのメモリ制限（調整が必要かも）
+# max_memory_MB: 20000  # 各GPUのメモリ制限（調整が必要かも）
 
 special_tokens:
 eot_tokens:
