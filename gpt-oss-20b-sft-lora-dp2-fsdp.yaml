@@ -23,7 +23,9 @@ fsdp_config:
   mixed_precision: true # 計算精度を落としてメモリ節約（bf16と連携）
   use_orig_params: true # 学習開始後エラーで追加  
   limit_all_gathers: true # 通信の最適化
-
+  #all-gather 操作（分散されたパラメータを一時的に集める処理）が forward や backward パスの中で頻繁に行われます。
+  # これらの操作は通信コストが高く、同時に多数の all-gather を実行すると GPUメモリの圧迫や通信の競合が発生する可能性
+  cpu_offload: false
 
 # マルチGPU用の分散型設定
 # deepspeed: false
