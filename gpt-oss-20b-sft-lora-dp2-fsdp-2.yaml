@@ -1,0 +1,113 @@
+# ===== Axolotl config: 1-node / multi-GPU with FSDP2 =====
+base_model: openai/gpt-oss-20b
+use_kernels: true
+quantization_config:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+plugins:
+  - axolotl.integrations.cut_cross_entropy.CutCrossEntropyPlugin
+experimental_skip_move_to_device: true
+hub_model_id: ikedachin/gpt-oss-20b-dp-v2
+hub_strategy: "end"
+hf_use_auth_token: true
+
+wandb_project: axolotl
+wandb_name: gpt-oss-20b-dp-v2-sft
+logging_steps: 5
+
+datasets:
+  - path: ikedachin/difficult_problem_dataset_v2
+    split: train
+    type:
+      field_instruction: input
+      field_output: output
+      format: |
+        User: {instruction}
+        Assistant:
+      no_input_format: |
+        User: {instruction}
+        Assistant:
+
+train_on_inputs: false
+dataset_prepared_path: last_run_prepared
+val_set_size: 0
+output_dir: ./outputs/gpt-oss-out-merged/
+sequence_len: 8192
+sample_packing: true
+
+adapter: lora
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.0
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+gradient_accumulation_steps: 8
+micro_batch_size: 1
+# [NOTE] グローバルバッチ = micro_batch_size × gradient_accumulation_steps × GPU数
+
+num_epochs: 1
+optimizer: adamw_torch_8bit
+lr_scheduler: cosine
+cosine_min_lr_ratio: 0.01
+learning_rate: 1e-5
+max_grad_norm: 1.0
+
+bf16: true
+tf32: true
+flash_attention: true
+attn_implementation: kernels-community/vllm-flash-attn3
+gradient_checkpointing: true
+activation_offloading: true
+saves_per_epoch: 1
+warmup_ratio: 0.1
+
+special_tokens:
+  eot_tokens:
+    - "<end>"
+
+merge_adapter: true
+save_safetensors: true
+
+# ---------------------- FSDP2 設定（ここが修正の中心） ----------------------
+fsdp:
+  - auto_wrap            # [CHANGED] FSDP2でも自動ラップを使用（公式サンプルと同様の指定）。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+  - full_shard           # [CHANGED] パラメータ/勾配/オプティマイザ状態を完全分割（FULL_SHARD）。[3](https://deepwiki.com/axolotl-ai-cloud/axolotl/6.1-fsdp-setup)
+
+fsdp_version: 2        # [ADDED] ★FSDP2を明示。Axolotl の FSDP2 サンプルに準拠。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)
+fsdp_config:
+
+  auto_wrap_policy: TRANSFORMER_BASED_WRAP     # [ADDED] 変換器層に基づく自動ラップ。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+  transformer_layer_cls_to_wrap: GptOssDecoderLayer
+  # [ADDED] GPT‑OSS のデコーダ層クラス名（例）。Transformers 実装での正確なクラス名に合わせてください。
+  #         例: LLaMA系は Llama(4)TextDecoderLayer、Qwen2 は Qwen2DecoderLayer。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+  #         GPT‑OSS の最新 Transformers 実装（gpt_oss）では decoder layer 名が「GptOssDecoderLayer」である想定です。
+  #         不一致時は `transformers.models.gpt_oss.modeling_gpt_oss` を確認のうえ修正してください。[4](https://huggingface.co/docs/transformers/main/model_doc/gpt_oss)[5](https://huggingface.co/Intel/gpt-oss-20b-int4-g64-AutoRound/blob/main/modeling_gpt_oss.py)
+
+  # --- チェックポイント保存形式 ---
+  state_dict_type: FULL_STATE_DICT             # [CHANGED] safetensors 互換のため FULL_STATE_DICT を推奨。SHARDED は非互換。[3](https://deepwiki.com/axolotl-ai-cloud/axolotl/6.1-fsdp-setup)
+
+  # --- シャーディング/メモリ制御 ---
+  sharding_strategy: FULL_SHARD                # [ADDED] 完全分割戦略。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)
+  reshard_after_forward: true                  # [ADDED] フォワード後に再シャードしてピークメモリを抑制。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)[6](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
+  activation_checkpointing: true               # [ADDED] 活性化チェックポイントでメモリ削減（計算増とトレードオフ）。[6](https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
+
+  # --- 初期同期/AllGather 最適化（任意だが推奨） ---
+  # fsdp_limit_all_gathers: true                      # [ADDED] AllGather の抑制でスパイク抑止。Axolotl例より。[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+  # fsdp_sync_module_states: true                     # [ADDED] 初期化時に各 rank のモジュール状態を同期。Axolotl例より。[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+
+  # --- オフロード設定 ---
+  offload_params: false                        # [CHANGED] 4bit/8bit量子化と衝突しやすいため無効化（LLM例に準拠）。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)
+  cpu_ram_efficient_loading: true            # [OPTION] 量子化と併用で不具合が出る場合があるためデフォルト無効。必要時のみ有効化。[1](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/llama-4/scout-qlora-flexattn-fsdp2.yaml)
+
+  # --- FSDP1 互換の挙動を避けるためのフラグ ---
+  # fsdp_use_orig_params: false                       # [ADDED] FSDP1流の FlatParam 互換ではなく FSDP2 (DTensor) 前提へ。Axolotl例より。[2](https://github.com/axolotl-ai-cloud/axolotl/blob/main/examples/qwen2/qlora-fsdp.yaml)
+# ----------------------------------------------------------------------
