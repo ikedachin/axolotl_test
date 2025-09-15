@@ -33,7 +33,7 @@ datasets:
 train_on_inputs: false
 dataset_prepared_path: last_run_prepared
 val_set_size: 0
-output_dir: ./outputs/gpt-oss-out-merged/
+output_dir: ./outputs/gpt-oss-out-fsdp/
 sequence_len: 8192
 sample_packing: true
 
