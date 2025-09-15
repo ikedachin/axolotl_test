@@ -73,7 +73,7 @@ special_tokens:
   eot_tokens:
     - "<end>"
 
-merge_adapter: true
+merge_adapter: false
 save_safetensors: true
 
 
