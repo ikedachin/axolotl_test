@@ -19,7 +19,7 @@ logging_steps: 5
 
 datasets:
   - path: ikedachin/difficult_problem_dataset_v2
-    split: train
+    split: train[:256]
     type:
       field_instruction: input
       field_output: output
