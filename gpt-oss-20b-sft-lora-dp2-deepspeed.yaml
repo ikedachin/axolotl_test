@@ -79,4 +79,4 @@ merge_adapter: false
 save_safetensors: true
 
 # ---------------------- ここからが変更点（DeepSpeed 有効化） ----------------------
-deepspeed: deepspeed_configs/zero3.json        
+deepspeed: deepspeed_configs/zero3_bf16.json        
