@@ -77,8 +77,8 @@ saves_per_epoch: 1
 warmup_ratio: 0.1
 
 special_tokens:
-eot_tokens:
-  - "<|end|>"
+  eot_tokens:
+    - "<|end|>"
 
 merge_adapter: true
 save_safetensors: true
