@@ -73,7 +73,7 @@ warmup_ratio: 0.1
 
 special_tokens:
   eot_tokens:
-    - "<end>"
+    - "<|end|>"
 
 merge_adapter: false
 save_safetensors: true
