@@ -19,7 +19,7 @@ logging_steps: 5
 
 datasets:
   - path: ikedachin/difficult_problem_dataset_v2
-    split: train
+    split: train[:256]
     type:
       field_instruction: input
       field_output: output
@@ -75,10 +75,8 @@ special_tokens:
   eot_tokens:
     - "<end>"
 
-merge_adapter: true
+merge_adapter: false
 save_safetensors: true
 
 # ---------------------- ここからが変更点（DeepSpeed 有効化） ----------------------
-deepspeed: deepspeed_configs/zero3.json           # [ADDED] DeepSpeed を有効化。Axolotl 付属の ZeRO-3 設定を使用（パラメータ/勾配/最適化状態の分割）[1](https://deepwiki.com/axolotl-ai-cloud/axolotl/6.2-deepspeed-integration)[3](https://github.com/axolotl-ai-cloud/axolotl/blob/main/deepspeed_configs/zero3.json)
-# [NOTE] zero3.json は ZeRO-3 と BF16/FP16 の自動設定、保存時の 16-bit 重み収集などを含みます。[3](https://github.com/axolotl-ai-cloud/axolotl/blob/main/deepspeed_configs/zero3.json)
-# ---------------------------------------------------------------------
+deepspeed: deepspeed_configs/zero3.json        
